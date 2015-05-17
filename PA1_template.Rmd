@@ -16,8 +16,13 @@ What is mean total number of steps taken per day?
 
 
 ```{r, echo=TRUE}
-steps <- hist(aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)$steps)
-plot(steps, border = "dark blue", col = "light blue",main = "Number of Steps Per Day", xlab ="steps")
+hist(aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)$steps,xlab ="Days",main="Histogram")
+
+barplot(aggregate(steps ~ weekdays(as.Date(date)), data = activity, sum, na.rm = TRUE)$steps, names.arg=c("Sunday", "Monday", "Tuesday", "Wednes", "Thuday",     "Friday", "Saturday"),main="Barplot",ylab = "Frequency")
+
+
+
+#plot(steps, border = "dark blue", col = "light blue",main = "Number of Steps Per Day", xlab ="steps")
 ```
 
 
@@ -44,9 +49,55 @@ maxIndex<-which.max(stpInt$steps)
 stpInt[maxIndex,]$interval
 
 ```
+
+
 Inputting missing values
-Number of missing rows are:
+
 ```{r,echo=TRUE}
 sum(is.na(activity$steps))
+missingValues<-sum(is.na(activity$steps))
 
+```
+Number of missing rows is:`missingValues`
+
+Strategy for filling in all of the missing values in the dataset: Find averages by day of week and time of day and replace the missing values with them.
+```{r,echo=TRUE}
+activity$day<- weekdays(as.Date(activity$date))
+aggregatedLookupSet<-aggregate(steps ~ interval+day,data = activity, mean, na.rm = TRUE)
+
+lookUp <- function(interval,day) {
+    aggregatedLookupSet[aggregatedLookupSet$interval == interval & aggregatedLookupSet$day ==day, ]$steps
+}
+
+count <- 0 
+for (i in 1:nrow(activity)) {
+    if (is.na(activity[i, ]$steps)) {
+        activity[i, ]$steps <- lookUp(activity[i, ]$interval,activity[i, ]$day)
+        count = count + 1
+    }
+}
+```
+
+Total Number of Repaired Records: `Count`
+
+Histogram Mean and Median are as below
+
+```{r,echo=TRUE}
+totalStp <- aggregate(steps ~ date, data = activity, sum)
+hist(totalStp$steps)
+mean(totalStp)
+median(totalStp$steps)
+```
+
+
+Are there differences in activity patterns between weekdays and weekends?
+
+
+```{r,echo=TRUE}
+activity$day <- ifelse(as.POSIXlt(as.Date(activity$date))$wday ==0 | as.POSIXlt(as.Date(activity$date))$wday ==6, "weekend", "weekday")
+
+activity$day <- factor(activity$day, levels = c("weekday", "weekend"))
+stpInt2 <- aggregate(steps ~ interval + day, activity, mean)
+library(lattice)
+xyplot(steps ~ interval | factor(day), data = stpInt2, aspect = 1/2, type = "l")
 ```
