@@ -1,0 +1,52 @@
+---
+title: "Peer Assessment 1"
+output: html_document
+---
+##Loading and preprocessing the data
+
+The data is a csv file that was downloaded and unzipped as activity.csv
+
+
+
+```{r,echo = TRUE}
+activity=read.csv('activity.csv')
+```
+
+What is mean total number of steps taken per day?
+
+
+```{r, echo=TRUE}
+steps <- hist(aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)$steps)
+plot(steps, border = "dark blue", col = "light blue",main = "Number of Steps Per Day", xlab ="steps")
+```
+
+
+The mean and median total number of steps taken per day  
+
+```{r,echo=TRUE}
+tot<- aggregate(steps ~ date, data = activity, sum, na.rm = TRUE)
+ mean(tot$steps)
+ 
+ median(tot$steps)
+```
+
+What is the average daily activity pattern?
+
+```{r,echo=TRUE}
+
+stpInt <- aggregate(steps ~ interval, data = activity, mean, na.rm = TRUE)
+plot(steps ~ interval, data = stpInt, type = "l")
+```
+
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r,echo=TRUE}
+maxIndex<-which.max(stpInt$steps)
+stpInt[maxIndex,]$interval
+
+```
+Inputting missing values
+Number of missing rows are:
+```{r,echo=TRUE}
+sum(is.na(activity$steps))
+
+```
